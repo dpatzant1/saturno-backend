@@ -37,6 +37,21 @@ const obtenerTodos = async (req, res, next) => {
 };
 
 /**
+ * Obtener lista simple de productos activos (sin paginación)
+ * GET /api/productos/lista-simple
+ * Retorna solo: id, nombre, precio_venta, cantidad_stock, unidad_medida
+ * Útil para selectores y dropdowns en el frontend
+ */
+const obtenerListaSimple = async (req, res, next) => {
+  try {
+    const productos = await productosService.obtenerListaSimple();
+    exito({ res, datos: productos, mensaje: 'Lista de productos obtenida exitosamente' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Obtener productos en papelera
  * GET /api/productos/papelera
  */
@@ -199,6 +214,7 @@ const desactivar = async (req, res, next) => {
 
 module.exports = {
   obtenerTodos,
+  obtenerListaSimple,
   obtenerPapelera,
   obtenerStockBajo,
   obtenerPorId,

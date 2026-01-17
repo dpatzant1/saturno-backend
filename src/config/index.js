@@ -34,6 +34,6 @@ module.exports = {
   pagination: {
     defaultPage: 1,
     defaultLimit: 20,
-    maxLimit: 100
+    maxLimit: 500 // Aumentado para permitir obtener todos los productos cuando sea necesario
   }
 };

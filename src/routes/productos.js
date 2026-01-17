@@ -148,6 +148,20 @@ router.get(
 );
 
 /**
+ * GET /api/productos/lista-simple
+ * Obtener lista simple de todos los productos activos (sin paginación)
+ * Retorna solo: id, nombre, precio_venta, cantidad_stock, unidad_medida
+ * Útil para selectores y dropdowns en el frontend
+ * Acceso: ADMINISTRADOR y VENDEDOR
+ */
+router.get(
+  '/lista-simple',
+  verificarToken,
+  administradorOVendedor,
+  productosController.obtenerListaSimple
+);
+
+/**
  * GET /api/productos/papelera
  * Obtener productos en papelera
  * IMPORTANTE: Debe ir ANTES de /stock-bajo y /:id

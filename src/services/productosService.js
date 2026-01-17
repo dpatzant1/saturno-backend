@@ -110,6 +110,15 @@ const obtenerTodos = async (filtros = {}) => {
 };
 
 /**
+ * Obtener lista simple de productos activos (sin paginación)
+ * Retorna solo campos esenciales para selectores
+ * @returns {Promise<Array>} Lista simplificada de productos
+ */
+const obtenerListaSimple = async () => {
+  return await productosRepository.obtenerListaSimple();
+};
+
+/**
  * Obtener productos en papelera
  * @returns {Promise<Array>} Lista de productos eliminados
  */
@@ -318,6 +327,7 @@ const desactivar = async (idProducto) => {
 
 module.exports = {
   obtenerTodos,
+  obtenerListaSimple,
   obtenerPapelera,
   obtenerStockBajo,
   obtenerPorId,

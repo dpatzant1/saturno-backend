@@ -131,6 +131,31 @@ const obtenerPapelera = async () => {
 };
 
 /**
+ * Obtener lista simple de productos activos (sin paginación)
+ * Retorna solo campos esenciales para selectores/dropdowns
+ * @returns {Promise<Array>} Lista simplificada de productos
+ */
+const obtenerListaSimple = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('id_producto, nombre, precio_venta, cantidad_stock, unidad_medida')
+      .is('deleted_at', null)
+      .eq('estado', true)
+      .order('nombre', { ascending: true });
+
+    if (error) {
+      throw new ErrorBaseDatos('Error al obtener lista de productos', error);
+    }
+
+    return data || [];
+  } catch (error) {
+    if (error instanceof ErrorBaseDatos) throw error;
+    throw new ErrorBaseDatos('Error al obtener lista de productos', error);
+  }
+};
+
+/**
  * Obtener productos con stock bajo o agotado
  * @returns {Promise<Array>} Productos donde cantidad_stock <= stock_minimo
  */
@@ -479,6 +504,7 @@ const contarMovimientosRecientes = async (idProducto) => {
 
 module.exports = {
   obtenerTodos,
+  obtenerListaSimple,
   obtenerPapelera,
   obtenerStockBajo,
   obtenerPorId,
