@@ -16,6 +16,9 @@ const { iniciarJobs } = require('./jobs/scheduler');
 
 const app = express();
 
+// Confiar en proxy de Render para obtener IPs reales
+app.set('trust proxy', 1);
+
 // Seguridad con Helmet
 app.use(helmet());
 

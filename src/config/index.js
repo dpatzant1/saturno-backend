@@ -27,7 +27,7 @@ module.exports = {
   // Configuración de Rate Limiting
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutos
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000 // Aumentado para producción
   },
   
   // Configuración de paginación por defecto
