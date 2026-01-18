@@ -39,8 +39,8 @@ const obtenerTodos = async (req, res, next) => {
 /**
  * Obtener lista simple de productos activos (sin paginación)
  * GET /api/productos/lista-simple
- * Retorna solo: id, nombre, precio_venta, cantidad_stock, unidad_medida
- * Útil para selectores y dropdowns en el frontend
+ * Retorna: id, nombre, descripción, precio_venta, cantidad_stock, stock_minimo, unidad_medida, categorías
+ * Útil para selectores, dropdowns y buscadores en el frontend
  */
 const obtenerListaSimple = async (req, res, next) => {
   try {

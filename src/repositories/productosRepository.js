@@ -139,7 +139,19 @@ const obtenerListaSimple = async () => {
   try {
     const { data, error } = await supabase
       .from('productos')
-      .select('id_producto, nombre, precio_venta, cantidad_stock, unidad_medida')
+      .select(`
+        id_producto, 
+        nombre, 
+        descripcion,
+        precio_venta, 
+        cantidad_stock, 
+        stock_minimo,
+        unidad_medida,
+        categorias (
+          id_categoria,
+          nombre
+        )
+      `)
       .is('deleted_at', null)
       .eq('estado', true)
       .order('nombre', { ascending: true });

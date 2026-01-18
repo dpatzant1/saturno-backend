@@ -150,8 +150,8 @@ router.get(
 /**
  * GET /api/productos/lista-simple
  * Obtener lista simple de todos los productos activos (sin paginación)
- * Retorna solo: id, nombre, precio_venta, cantidad_stock, unidad_medida
- * Útil para selectores y dropdowns en el frontend
+ * Retorna: id, nombre, descripción, precio_venta, cantidad_stock, stock_minimo, unidad_medida, categorías
+ * Útil para selectores, dropdowns y buscadores en el frontend
  * Acceso: ADMINISTRADOR y VENDEDOR
  */
 router.get(
