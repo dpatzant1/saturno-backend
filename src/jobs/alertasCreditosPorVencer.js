@@ -5,6 +5,7 @@
 
 const supabase = require('../config/database');
 const { logger } = require('../utils/logger');
+const { obtenerFechaGuatemala, obtenerFechaFuturaGuatemala } = require('../utils/fechas');
 
 /**
  * Días de anticipación para alertar (7 días antes del vencimiento)
@@ -18,9 +19,9 @@ async function detectarCreditosPorVencer() {
   try {
     logger.info('Verificando créditos próximos a vencer...');
     
-    const hoy = new Date();
-    const fechaLimite = new Date();
-    fechaLimite.setDate(hoy.getDate() + DIAS_ANTICIPACION);
+    // Usar zona horaria de Guatemala
+    const hoy = obtenerFechaGuatemala();
+    const fechaLimite = obtenerFechaFuturaGuatemala(DIAS_ANTICIPACION);
     
     const hoyStr = hoy.toISOString().split('T')[0];
     const fechaLimiteStr = fechaLimite.toISOString().split('T')[0];

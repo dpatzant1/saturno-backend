@@ -181,8 +181,8 @@ const validarEstadoVenta = () => {
 const validarEstadoCredito = () => {
   return body('estado')
     .optional()
-    .isIn(['ACTIVO', 'PAGADO', 'VENCIDO'])
-    .withMessage('El estado debe ser ACTIVO, PAGADO o VENCIDO');
+    .isIn(['ACTIVO', 'PAGADO', 'VENCIDO', 'ANULADO'])
+    .withMessage('El estado debe ser ACTIVO, PAGADO, VENCIDO o ANULADO');
 };
 
 /**

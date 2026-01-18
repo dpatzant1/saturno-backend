@@ -14,7 +14,17 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Configurar zona horaria de Guatemala (UTC-6)
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-node'
+    }
+  }
+});
 
 /**
  * Función para verificar la conexión a la base de datos

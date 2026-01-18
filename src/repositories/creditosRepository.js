@@ -5,20 +5,26 @@
 
 const { supabase } = require('../config/database');
 const { ErrorBaseDatos, ErrorNoEncontrado } = require('../utils/errores');
+const { obtenerFechaGuatemala, formatearISO } = require('../utils/fechas');
 
 /**
  * Crea un nuevo registro de crédito
  */
 async function crear(credito) {
   try {
+    // Si no se proporciona fecha_inicio, usar la fecha actual de Guatemala
+    const fechaInicio = credito.fecha_inicio || formatearISO(obtenerFechaGuatemala());
+    
     const { data, error } = await supabase
       .from('creditos')
       .insert([{
+        id_venta: credito.id_venta, // Relación con la venta
         id_cliente: credito.id_cliente,
         monto_total: credito.monto_total,
         saldo_pendiente: credito.saldo_pendiente || credito.monto_total,
-        fecha_inicio: credito.fecha_inicio,
+        fecha_inicio: fechaInicio,
         fecha_vencimiento: credito.fecha_vencimiento,
+        dias_credito: credito.dias_credito,
         estado: credito.estado || 'ACTIVO'
       }])
       .select(`
@@ -248,11 +254,68 @@ async function obtenerDeudaCliente(id_cliente) {
   }
 }
 
+/**
+ * Obtiene un crédito por ID de venta
+ */
+async function obtenerPorVenta(id_venta) {
+  try {
+    const { data, error } = await supabase
+      .from('creditos')
+      .select(`
+        *,
+        clientes:id_cliente (
+          id_cliente,
+          nombre,
+          apellido,
+          tipo_cliente,
+          limite_credito,
+          telefono,
+          correo
+        )
+      `)
+      .eq('id_venta', id_venta)
+      .single();
+
+    if (error || !data) {
+      throw new ErrorNoEncontrado('Crédito asociado a la venta no encontrado');
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof ErrorNoEncontrado) throw error;
+    throw new ErrorBaseDatos(`Error al obtener crédito por venta: ${error.message}`);
+  }
+}
+
+/**
+ * Anula un crédito (cambia estado a ANULADO)
+ */
+async function anular(id_credito) {
+  try {
+    const { data, error } = await supabase
+      .from('creditos')
+      .update({
+        estado: 'ANULADO',
+        saldo_pendiente: 0 // Al anular, el saldo pendiente se pone en 0
+      })
+      .eq('id_credito', id_credito)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    throw new ErrorBaseDatos(`Error al anular crédito: ${error.message}`);
+  }
+}
+
 module.exports = {
   crear,
   obtenerPorId,
   obtenerTodos,
   actualizarSaldo,
   obtenerVencidos,
-  obtenerDeudaCliente
+  obtenerDeudaCliente,
+  obtenerPorVenta,
+  anular
 };

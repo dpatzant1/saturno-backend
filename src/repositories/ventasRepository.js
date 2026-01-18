@@ -5,6 +5,7 @@
 
 const { supabase } = require('../config/database');
 const { ErrorNoEncontrado } = require('../utils/errores');
+const { obtenerFechaGuatemala, formatearISO } = require('../utils/fechas');
 
 /**
  * Crea una nueva venta (solo encabezado)
@@ -20,6 +21,9 @@ const { ErrorNoEncontrado } = require('../utils/errores');
  * @returns {Promise<Object>} Venta creada
  */
 async function crear(venta) {
+  // Obtener la fecha actual en zona horaria de Guatemala
+  const fechaVenta = formatearISO(obtenerFechaGuatemala());
+
   const { data, error } = await supabase
     .from('ventas')
     .insert({
@@ -31,7 +35,8 @@ async function crear(venta) {
       descuento_valor: venta.descuento_valor || 0,
       descuento_monto: venta.descuento_monto || 0,
       total: venta.total,
-      estado: 'ACTIVA'
+      estado: 'ACTIVA',
+      fecha_venta: fechaVenta
     })
     .select(`
       *,

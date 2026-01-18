@@ -5,6 +5,7 @@
 
 const { supabase } = require('../config/database');
 const { ErrorNoEncontrado } = require('../utils/errores');
+const { obtenerFechaGuatemala, formatearISO } = require('../utils/fechas');
 
 /**
  * Registra un movimiento de inventario y actualiza el stock del producto
@@ -20,7 +21,10 @@ const { ErrorNoEncontrado } = require('../utils/errores');
 async function crear(movimiento) {
   const { id_producto, tipo_movimiento, cantidad, motivo, referencia } = movimiento;
 
-  // 1. Insertar el movimiento
+  // Obtener la fecha actual en zona horaria de Guatemala
+  const fechaMovimiento = formatearISO(obtenerFechaGuatemala());
+
+  // 1. Insertar el movimiento con fecha en zona horaria de Guatemala
   const { data: nuevoMovimiento, error: errorMovimiento } = await supabase
     .from('movimientos_inventario')
     .insert({
@@ -28,7 +32,8 @@ async function crear(movimiento) {
       tipo_movimiento,
       cantidad,
       motivo,
-      referencia
+      referencia,
+      fecha_movimiento: fechaMovimiento
     })
     .select(`
       *,

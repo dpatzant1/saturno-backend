@@ -5,6 +5,7 @@
 
 const supabase = require('../config/database');
 const { logger } = require('../utils/logger');
+const { obtenerFechaHoyGuatemala } = require('../utils/fechas');
 
 /**
  * Actualiza créditos que ya vencieron a estado VENCIDO
@@ -13,7 +14,7 @@ async function actualizarCreditosVencidos() {
   try {
     logger.info('Iniciando actualización de créditos vencidos...');
     
-    const hoy = new Date().toISOString().split('T')[0]; // Solo fecha YYYY-MM-DD
+    const hoy = obtenerFechaHoyGuatemala(); // Fecha en zona horaria de Guatemala
     
     // Buscar créditos ACTIVOS que ya vencieron
     const { data: creditosVencidos, error: errorBuscar } = await supabase

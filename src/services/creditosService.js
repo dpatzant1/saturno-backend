@@ -19,7 +19,8 @@ const {
 const ESTADOS_CREDITO = {
   ACTIVO: 'ACTIVO',
   PAGADO: 'PAGADO',
-  VENCIDO: 'VENCIDO'
+  VENCIDO: 'VENCIDO',
+  ANULADO: 'ANULADO'
 };
 
 /**
@@ -169,6 +170,11 @@ async function registrarPago(datos) {
   // Validar que el crédito esté activo
   if (credito.estado === ESTADOS_CREDITO.PAGADO) {
     throw new ErrorConflicto('El crédito ya está completamente pagado');
+  }
+
+  // Validar que el crédito no esté anulado
+  if (credito.estado === 'ANULADO') {
+    throw new ErrorConflicto('No se pueden registrar pagos en un crédito anulado');
   }
 
   // Validar que el pago no exceda el saldo pendiente

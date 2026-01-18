@@ -5,12 +5,16 @@
 
 const { supabase } = require('../config/database');
 const { ErrorBaseDatos, ErrorNoEncontrado } = require('../utils/errores');
+const { obtenerFechaGuatemala, formatearISO } = require('../utils/fechas');
 
 /**
  * Registra un nuevo pago de crédito
  */
 async function crear(pago) {
   try {
+    // Obtener la fecha actual en zona horaria de Guatemala
+    const fechaPago = formatearISO(obtenerFechaGuatemala());
+
     const { data, error } = await supabase
       .from('pagos_credito')
       .insert([{
@@ -19,7 +23,8 @@ async function crear(pago) {
         metodo_pago: pago.metodo_pago || null,
         observaciones: pago.observaciones || null,
         saldo_despues_pago: pago.saldo_despues_pago,
-        id_usuario: pago.id_usuario
+        id_usuario: pago.id_usuario,
+        fecha_pago: fechaPago
       }])
       .select(`
         *,

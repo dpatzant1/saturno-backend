@@ -13,7 +13,7 @@ const ESTADOS_VENTA_VALIDOS = ['ACTIVA', 'ANULADA'];
 /**
  * Estados válidos de crédito
  */
-const ESTADOS_CREDITO_VALIDOS = ['ACTIVO', 'VENCIDO', 'PAGADO'];
+const ESTADOS_CREDITO_VALIDOS = ['ACTIVO', 'VENCIDO', 'PAGADO', 'ANULADO'];
 
 /**
  * Tipos de cliente válidos

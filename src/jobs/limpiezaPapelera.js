@@ -5,6 +5,7 @@
 
 const supabase = require('../config/database');
 const { logger } = require('../utils/logger');
+const { obtenerFechaGuatemala, formatearISO } = require('../utils/fechas');
 
 /**
  * Días que deben pasar para eliminar permanentemente
@@ -12,12 +13,12 @@ const { logger } = require('../utils/logger');
 const DIAS_PAPELERA = 30;
 
 /**
- * Calcula la fecha límite (30 días atrás desde hoy)
+ * Calcula la fecha límite (30 días atrás desde hoy) en zona horaria de Guatemala
  */
 function obtenerFechaLimite() {
-  const fecha = new Date();
+  const fecha = obtenerFechaGuatemala();
   fecha.setDate(fecha.getDate() - DIAS_PAPELERA);
-  return fecha.toISOString();
+  return formatearISO(fecha);
 }
 
 /**

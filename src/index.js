@@ -4,6 +4,9 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 require('dotenv').config();
 
+// Configurar zona horaria de Guatemala
+process.env.TZ = process.env.TZ || 'America/Guatemala';
+
 const config = require('./config');
 const { verificarConexion } = require('./config/database');
 const { 

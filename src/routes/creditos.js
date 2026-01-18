@@ -88,8 +88,8 @@ const validacionFiltros = [
   
   query('estado')
     .optional()
-    .isIn([ESTADOS_CREDITO.ACTIVO, ESTADOS_CREDITO.PAGADO, ESTADOS_CREDITO.VENCIDO])
-    .withMessage(`El estado debe ser ${ESTADOS_CREDITO.ACTIVO}, ${ESTADOS_CREDITO.PAGADO} o ${ESTADOS_CREDITO.VENCIDO}`),
+    .isIn([ESTADOS_CREDITO.ACTIVO, ESTADOS_CREDITO.PAGADO, ESTADOS_CREDITO.VENCIDO, ESTADOS_CREDITO.ANULADO])
+    .withMessage(`El estado debe ser ${ESTADOS_CREDITO.ACTIVO}, ${ESTADOS_CREDITO.PAGADO}, ${ESTADOS_CREDITO.VENCIDO} o ${ESTADOS_CREDITO.ANULADO}`),
   
   query('fecha_desde')
     .optional()
