@@ -77,13 +77,13 @@ async function validarDatosMovimiento(datos) {
   // Validar motivo
   if (!datos.motivo) {
     errores.push('El motivo es requerido');
-  } else if (datos.motivo.length > 50) {
-    errores.push('El motivo no puede exceder 50 caracteres');
+  } else if (datos.motivo.length > 500) {
+    errores.push('El motivo no puede exceder 500 caracteres');
   }
 
   // Validar referencia (opcional)
-  if (datos.referencia && datos.referencia.length > 100) {
-    errores.push('La referencia no puede exceder 100 caracteres');
+  if (datos.referencia && datos.referencia.length > 200) {
+    errores.push('La referencia no puede exceder 200 caracteres');
   }
 
   if (errores.length > 0) {

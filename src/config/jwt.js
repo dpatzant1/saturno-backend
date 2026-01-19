@@ -10,7 +10,7 @@ const jwtConfig = {
   // Access Token - para autenticación de requests
   accessToken: {
     secret: process.env.JWT_ACCESS_SECRET || 'access_secret_change_in_production',
-    expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '30m', // 30 minutos
+    expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '2h', // 2 horas
   },
   
   // Refresh Token - para renovar access tokens

@@ -31,13 +31,13 @@ const validacionCrearMovimiento = [
     .notEmpty().withMessage('El motivo es requerido')
     .isString().withMessage('El motivo debe ser texto')
     .trim()
-    .isLength({ min: 1, max: 50 }).withMessage('El motivo debe tener entre 1 y 50 caracteres'),
+    .isLength({ min: 1, max: 500 }).withMessage('El motivo debe tener entre 1 y 500 caracteres'),
   
   body('referencia')
     .optional()
     .isString().withMessage('La referencia debe ser texto')
     .trim()
-    .isLength({ max: 100 }).withMessage('La referencia no puede exceder 100 caracteres'),
+    .isLength({ max: 200 }).withMessage('La referencia no puede exceder 200 caracteres'),
   
   validarRequest
 ];
@@ -58,13 +58,13 @@ const validacionCrearEntrada = [
     .notEmpty().withMessage('El motivo es requerido')
     .isString().withMessage('El motivo debe ser texto')
     .trim()
-    .isLength({ min: 1, max: 50 }).withMessage('El motivo debe tener entre 1 y 50 caracteres'),
+    .isLength({ min: 1, max: 500 }).withMessage('El motivo debe tener entre 1 y 500 caracteres'),
   
   body('referencia')
     .optional()
     .isString().withMessage('La referencia debe ser texto')
     .trim()
-    .isLength({ max: 100 }).withMessage('La referencia no puede exceder 100 caracteres'),
+    .isLength({ max: 200 }).withMessage('La referencia no puede exceder 200 caracteres'),
   
   validarRequest
 ];
@@ -85,13 +85,13 @@ const validacionCrearSalida = [
     .notEmpty().withMessage('El motivo es requerido')
     .isString().withMessage('El motivo debe ser texto')
     .trim()
-    .isLength({ min: 1, max: 50 }).withMessage('El motivo debe tener entre 1 y 50 caracteres'),
+    .isLength({ min: 1, max: 500 }).withMessage('El motivo debe tener entre 1 y 500 caracteres'),
   
   body('referencia')
     .optional()
     .isString().withMessage('La referencia debe ser texto')
     .trim()
-    .isLength({ max: 100 }).withMessage('La referencia no puede exceder 100 caracteres'),
+    .isLength({ max: 200 }).withMessage('La referencia no puede exceder 200 caracteres'),
   
   validarRequest
 ];
@@ -112,13 +112,13 @@ const validacionAjusteInventario = [
     .optional()
     .isString().withMessage('El motivo debe ser texto')
     .trim()
-    .isLength({ max: 50 }).withMessage('El motivo no puede exceder 50 caracteres'),
+    .isLength({ max: 500 }).withMessage('El motivo no puede exceder 500 caracteres'),
   
   body('referencia')
     .optional()
     .isString().withMessage('La referencia debe ser texto')
     .trim()
-    .isLength({ max: 100 }).withMessage('La referencia no puede exceder 100 caracteres'),
+    .isLength({ max: 200 }).withMessage('La referencia no puede exceder 200 caracteres'),
   
   validarRequest
 ];
