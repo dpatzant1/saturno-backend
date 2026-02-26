@@ -608,6 +608,19 @@ async function obtenerReportePorPeriodo(fecha_desde, fecha_hasta) {
   return await ventasRepository.obtenerReportePorPeriodo(desde, hasta);
 }
 
+/**
+ * Obtiene el historial de ventas agrupado por mes
+ * @param {number} meses - Cantidad de meses hacia atrás (1-24, default: 12)
+ * @returns {Promise<Array>} Historial mensual de ventas
+ */
+async function obtenerHistorialMensual(meses = 12) {
+  const mesesNum = parseInt(meses);
+  if (isNaN(mesesNum) || mesesNum < 1 || mesesNum > 24) {
+    throw new ErrorValidacion('El parámetro meses debe ser un número entre 1 y 24');
+  }
+  return await ventasRepository.obtenerHistorialMensual(mesesNum);
+}
+
 module.exports = {
   // Constantes
   TIPOS_VENTA,
@@ -624,5 +637,6 @@ module.exports = {
   obtenerVentasPorCliente,
   obtenerVentasPorUsuario,
   obtenerDashboardDia,
-  obtenerReportePorPeriodo
+  obtenerReportePorPeriodo,
+  obtenerHistorialMensual
 };

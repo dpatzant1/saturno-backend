@@ -199,6 +199,20 @@ router.get(
   ventasController.obtenerDashboardDia
 );
 
+// GET /api/ventas/dashboard/historial-mensual - Historial de ventas por mes
+router.get(
+  '/dashboard/historial-mensual',
+  administradorOVendedor,
+  [
+    query('meses')
+      .optional()
+      .isInt({ min: 1, max: 24 })
+      .withMessage('El parámetro meses debe ser un número entre 1 y 24'),
+    validarRequest
+  ],
+  ventasController.obtenerHistorialMensual
+);
+
 // GET /api/ventas/reporte - Reporte por período
 router.get(
   '/reporte',

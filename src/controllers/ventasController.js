@@ -233,6 +233,26 @@ async function obtenerProductosMasVendidos(req, res, next) {
   }
 }
 
+/**
+ * GET /api/ventas/dashboard/historial-mensual
+ * Obtiene el historial de ventas agrupado por mes
+ * Query params: meses (opcional, default: 12, rango: 1-24)
+ */
+async function obtenerHistorialMensual(req, res, next) {
+  try {
+    const meses = req.query.meses || 12;
+    const historial = await ventasService.obtenerHistorialMensual(meses);
+
+    exito({
+      res,
+      mensaje: 'Historial mensual de ventas obtenido correctamente',
+      datos: historial
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   crearVentaContado,
   crearVentaCredito,
@@ -243,5 +263,6 @@ module.exports = {
   obtenerVentasPorUsuario,
   obtenerDashboardDia,
   obtenerReportePorPeriodo,
-  obtenerProductosMasVendidos
+  obtenerProductosMasVendidos,
+  obtenerHistorialMensual
 };

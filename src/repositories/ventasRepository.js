@@ -393,6 +393,88 @@ async function obtenerReportePorPeriodo(fecha_desde, fecha_hasta) {
   };
 }
 
+/**
+ * Obtiene el historial de ventas agrupado por mes
+ * @param {number} meses - Cantidad de meses hacia atrás (default: 12)
+ * @returns {Promise<Array>} Array de objetos { anio, mes, nombre_mes, total, cantidad, contado, credito }
+ */
+async function obtenerHistorialMensual(meses = 12) {
+  // Calcular la fecha de inicio: primer día del mes hace `meses` meses
+  const hoy = new Date();
+  const fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth() - (meses - 1), 1);
+  const fechaFin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+
+  const { data, error } = await supabase
+    .from('ventas')
+    .select('fecha_venta, total, tipo_venta, estado')
+    .gte('fecha_venta', fechaInicio.toISOString())
+    .lte('fecha_venta', fechaFin.toISOString())
+    .order('fecha_venta', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  const ventas = data || [];
+
+  // Nombres de meses en español
+  const nombresMeses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
+  // Generar estructura inicial para todos los meses del rango (incluso los sin ventas)
+  const historial = {};
+  for (let i = 0; i < meses; i++) {
+    const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - (meses - 1) + i, 1);
+    const anio = fecha.getFullYear();
+    const mes = fecha.getMonth() + 1; // 1-12
+    const key = `${anio}-${String(mes).padStart(2, '0')}`;
+    historial[key] = {
+      key,
+      anio,
+      mes,
+      nombre_mes: nombresMeses[mes - 1],
+      etiqueta: `${nombresMeses[mes - 1].substring(0, 3)} ${anio}`,
+      total: 0,
+      cantidad: 0,
+      contado: 0,
+      credito: 0,
+      monto_contado: 0,
+      monto_credito: 0
+    };
+  }
+
+  // Agrupar ventas activas por mes
+  ventas
+    .filter(v => v.estado === 'ACTIVA')
+    .forEach(venta => {
+      const fechaVenta = venta.fecha_venta.split('T')[0]; // YYYY-MM-DD
+      const [anio, mes] = fechaVenta.split('-');
+      const key = `${anio}-${mes}`;
+
+      if (historial[key]) {
+        historial[key].total += parseFloat(venta.total);
+        historial[key].cantidad += 1;
+        if (venta.tipo_venta === 'CONTADO') {
+          historial[key].contado += 1;
+          historial[key].monto_contado += parseFloat(venta.total);
+        } else if (venta.tipo_venta === 'CREDITO') {
+          historial[key].credito += 1;
+          historial[key].monto_credito += parseFloat(venta.total);
+        }
+      }
+    });
+
+  // Convertir a array y redondear valores
+  return Object.values(historial).map(m => ({
+    ...m,
+    total: parseFloat(m.total.toFixed(2)),
+    monto_contado: parseFloat(m.monto_contado.toFixed(2)),
+    monto_credito: parseFloat(m.monto_credito.toFixed(2))
+  }));
+}
+
 module.exports = {
   crear,
   obtenerTodos,
@@ -401,5 +483,6 @@ module.exports = {
   obtenerTotalesPorCliente,
   obtenerTotalesPorUsuario,
   obtenerDashboardDia,
-  obtenerReportePorPeriodo
+  obtenerReportePorPeriodo,
+  obtenerHistorialMensual
 };
