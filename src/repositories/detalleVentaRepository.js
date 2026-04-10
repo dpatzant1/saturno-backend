@@ -128,56 +128,89 @@ async function eliminarPorVenta(id_venta) {
  * @returns {Promise<Array>} Productos más vendidos
  */
 async function obtenerProductosMasVendidos(fecha_desde = null, fecha_hasta = null, limite = 10) {
-  let query = supabase
-    .from('detalle_venta')
-    .select(`
-      id_producto,
-      cantidad,
-      subtotal,
-      productos:id_producto (
+  const fechaDesde = fecha_desde ? String(fecha_desde).split('T')[0] : null;
+  const fechaHasta = fecha_hasta ? String(fecha_hasta).split('T')[0] : null;
+
+  // Paso 1: obtener IDs de ventas activas en el rango solicitado.
+  let ventasQuery = supabase
+    .from('ventas')
+    .select('id_venta, fecha_venta')
+    .eq('estado', 'ACTIVA');
+
+  if (fechaDesde) {
+    ventasQuery = ventasQuery.gte('fecha_venta', fechaDesde);
+  }
+
+  if (fechaHasta) {
+    ventasQuery = ventasQuery.lte('fecha_venta', fechaHasta);
+  }
+
+  const { data: ventasData, error: ventasError } = await ventasQuery;
+  if (ventasError) {
+    throw ventasError;
+  }
+
+  const idsVentas = (ventasData || [])
+    .map(v => v.id_venta)
+    .filter(Boolean);
+
+  if (idsVentas.length === 0) {
+    return [];
+  }
+
+  // Paso 2: obtener detalles en lotes para evitar errores de fetch/URL por listas .in() muy grandes.
+  const detallesData = [];
+  const TAMANIO_LOTE = 250;
+
+  for (let i = 0; i < idsVentas.length; i += TAMANIO_LOTE) {
+    const loteIds = idsVentas.slice(i, i + TAMANIO_LOTE);
+
+    const { data: loteDetalle, error: loteError } = await supabase
+      .from('detalle_venta')
+      .select(`
+        id_venta,
         id_producto,
-        nombre,
-        unidad_medida
-      ),
-      ventas:id_venta (
-        fecha_venta,
-        estado
-      )
-    `);
+        cantidad,
+        subtotal,
+        productos:id_producto (
+          id_producto,
+          nombre,
+          unidad_medida
+        )
+      `)
+      .in('id_venta', loteIds);
 
-  if (fecha_desde) {
-    query = query.gte('ventas.fecha_venta', fecha_desde);
+    if (loteError) {
+      throw loteError;
+    }
+
+    if (loteDetalle?.length) {
+      detallesData.push(...loteDetalle);
+    }
   }
-
-  if (fecha_hasta) {
-    query = query.lte('ventas.fecha_venta', fecha_hasta);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw error;
-  }
-
-  // Filtrar solo ventas activas
-  const detallesActivos = (data || []).filter(d => d.ventas?.estado === 'ACTIVA');
 
   // Agrupar por producto
   const productoMap = {};
-  detallesActivos.forEach(detalle => {
+  (detallesData || []).forEach(detalle => {
+    const producto = Array.isArray(detalle.productos) ? detalle.productos[0] : detalle.productos;
     const id = detalle.id_producto;
+    if (!id) {
+      return;
+    }
+
     if (!productoMap[id]) {
       productoMap[id] = {
         id_producto: id,
-        nombre: detalle.productos?.nombre,
-        unidad_medida: detalle.productos?.unidad_medida,
+        nombre: producto?.nombre || 'Sin nombre',
+        unidad_medida: producto?.unidad_medida || null,
         cantidad_total: 0,
         monto_total: 0,
         numero_ventas: 0
       };
     }
-    productoMap[id].cantidad_total += detalle.cantidad;
-    productoMap[id].monto_total += parseFloat(detalle.subtotal);
+
+    productoMap[id].cantidad_total += Number(detalle.cantidad || 0);
+    productoMap[id].monto_total += Number(detalle.subtotal || 0);
     productoMap[id].numero_ventas += 1;
   });
 

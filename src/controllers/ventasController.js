@@ -223,6 +223,16 @@ async function obtenerProductosMasVendidos(req, res, next) {
       limite ? parseInt(limite) : 10
     );
 
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[dashboard] productos/mas-vendidos ->', {
+        fecha_desde,
+        fecha_hasta,
+        limite: limite ? parseInt(limite) : 10,
+        total: productos.length,
+        primero: productos[0] || null
+      });
+    }
+
     exito({
       res,
       mensaje: 'Productos más vendidos obtenidos correctamente',

@@ -399,16 +399,11 @@ async function obtenerReportePorPeriodo(fecha_desde, fecha_hasta) {
  * @returns {Promise<Array>} Array de objetos { anio, mes, nombre_mes, total, cantidad, contado, credito }
  */
 async function obtenerHistorialMensual(meses = 12) {
-  // Calcular la fecha de inicio: primer día del mes hace `meses` meses
   const hoy = new Date();
-  const fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth() - (meses - 1), 1);
-  const fechaFin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
 
   const { data, error } = await supabase
     .from('ventas')
     .select('fecha_venta, total, tipo_venta, estado')
-    .gte('fecha_venta', fechaInicio.toISOString())
-    .lte('fecha_venta', fechaFin.toISOString())
     .order('fecha_venta', { ascending: true });
 
   if (error) {
@@ -416,6 +411,20 @@ async function obtenerHistorialMensual(meses = 12) {
   }
 
   const ventas = data || [];
+  const ventasActivasConFecha = ventas.filter(v => v.estado === 'ACTIVA' && v.fecha_venta);
+
+  // Usar como base el mes más reciente con ventas para evitar desfases de reloj del servidor.
+  let fechaBase = hoy;
+  if (ventasActivasConFecha.length > 0) {
+    const ultimaFecha = ventasActivasConFecha
+      .map(v => new Date(String(v.fecha_venta).split('T')[0]))
+      .filter(f => !Number.isNaN(f.getTime()))
+      .sort((a, b) => b - a)[0];
+
+    if (ultimaFecha) {
+      fechaBase = ultimaFecha;
+    }
+  }
 
   // Nombres de meses en español
   const nombresMeses = [
@@ -426,7 +435,7 @@ async function obtenerHistorialMensual(meses = 12) {
   // Generar estructura inicial para todos los meses del rango (incluso los sin ventas)
   const historial = {};
   for (let i = 0; i < meses; i++) {
-    const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - (meses - 1) + i, 1);
+    const fecha = new Date(fechaBase.getFullYear(), fechaBase.getMonth() - (meses - 1) + i, 1);
     const anio = fecha.getFullYear();
     const mes = fecha.getMonth() + 1; // 1-12
     const key = `${anio}-${String(mes).padStart(2, '0')}`;
@@ -449,19 +458,25 @@ async function obtenerHistorialMensual(meses = 12) {
   ventas
     .filter(v => v.estado === 'ACTIVA')
     .forEach(venta => {
-      const fechaVenta = venta.fecha_venta.split('T')[0]; // YYYY-MM-DD
+      const fechaFuente = venta.fecha_venta;
+      if (!fechaFuente) {
+        return;
+      }
+
+      const fechaVenta = String(fechaFuente).split('T')[0]; // YYYY-MM-DD
       const [anio, mes] = fechaVenta.split('-');
-      const key = `${anio}-${mes}`;
+      const key = `${anio}-${String(mes).padStart(2, '0')}`;
+      const montoVenta = Number(venta.total) || 0;
 
       if (historial[key]) {
-        historial[key].total += parseFloat(venta.total);
+        historial[key].total += montoVenta;
         historial[key].cantidad += 1;
         if (venta.tipo_venta === 'CONTADO') {
           historial[key].contado += 1;
-          historial[key].monto_contado += parseFloat(venta.total);
+          historial[key].monto_contado += montoVenta;
         } else if (venta.tipo_venta === 'CREDITO') {
           historial[key].credito += 1;
-          historial[key].monto_credito += parseFloat(venta.total);
+          historial[key].monto_credito += montoVenta;
         }
       }
     });
