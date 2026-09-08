@@ -401,29 +401,31 @@ async function obtenerReportePorPeriodo(fecha_desde, fecha_hasta) {
 async function obtenerHistorialMensual(meses = 12) {
   const hoy = new Date();
 
-  const { data, error } = await supabase
+  // Obtener únicamente la fecha más reciente para definir el último mes del
+  // historial. No se puede reutilizar una consulta sin paginación aquí:
+  // PostgREST/Supabase limita por defecto cada respuesta a 1,000 registros.
+  const { data: ultimasVentas, error: errorUltimaVenta } = await supabase
     .from('ventas')
-    .select('fecha_venta, total, tipo_venta, estado')
-    .order('fecha_venta', { ascending: true });
+    .select('fecha_venta')
+    .eq('estado', 'ACTIVA')
+    .not('fecha_venta', 'is', null)
+    .order('fecha_venta', { ascending: false })
+    .limit(1);
 
-  if (error) {
-    throw error;
+  if (errorUltimaVenta) {
+    throw errorUltimaVenta;
   }
-
-  const ventas = data || [];
-  const ventasActivasConFecha = ventas.filter(v => v.estado === 'ACTIVA' && v.fecha_venta);
 
   // Usar como base el mes más reciente con ventas para evitar desfases de reloj del servidor.
   let fechaBase = hoy;
-  if (ventasActivasConFecha.length > 0) {
-    const ultimaFecha = ventasActivasConFecha
-      .map(v => new Date(String(v.fecha_venta).split('T')[0]))
-      .filter(f => !Number.isNaN(f.getTime()))
-      .sort((a, b) => b - a)[0];
-
-    if (ultimaFecha) {
-      fechaBase = ultimaFecha;
-    }
+  const ultimaFechaTexto = ultimasVentas?.[0]?.fecha_venta;
+  if (ultimaFechaTexto) {
+    const [anio, mes, dia] = String(ultimaFechaTexto)
+      .split('T')[0]
+      .split('-')
+      .map(Number);
+    const ultimaFecha = new Date(anio, mes - 1, dia);
+    if (!Number.isNaN(ultimaFecha.getTime())) fechaBase = ultimaFecha;
   }
 
   // Nombres de meses en español
@@ -454,10 +456,37 @@ async function obtenerHistorialMensual(meses = 12) {
     };
   }
 
-  // Agrupar ventas activas por mes
-  ventas
-    .filter(v => v.estado === 'ACTIVA')
-    .forEach(venta => {
+  const formatearFecha = fecha => (
+    `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
+  );
+  const fechaInicio = new Date(fechaBase.getFullYear(), fechaBase.getMonth() - meses + 1, 1);
+  const fechaFinExclusiva = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + 1, 1);
+
+  // Leer todas las ventas del rango por páginas. Aunque se soliciten más filas,
+  // Supabase puede devolver como máximo 1,000 por respuesta.
+  const TAMANO_PAGINA = 1000;
+  let offset = 0;
+  let totalRegistros = null;
+
+  do {
+    const opcionesSelect = offset === 0 ? { count: 'exact' } : {};
+    const { data, error, count } = await supabase
+      .from('ventas')
+      .select('id_venta, fecha_venta, total, tipo_venta', opcionesSelect)
+      .eq('estado', 'ACTIVA')
+      .not('fecha_venta', 'is', null)
+      .gte('fecha_venta', formatearFecha(fechaInicio))
+      .lt('fecha_venta', formatearFecha(fechaFinExclusiva))
+      .order('fecha_venta', { ascending: true })
+      .order('id_venta', { ascending: true })
+      .range(offset, offset + TAMANO_PAGINA - 1);
+
+    if (error) throw error;
+
+    const pagina = data || [];
+    if (offset === 0) totalRegistros = count || 0;
+
+    pagina.forEach(venta => {
       const fechaFuente = venta.fecha_venta;
       if (!fechaFuente) {
         return;
@@ -480,6 +509,13 @@ async function obtenerHistorialMensual(meses = 12) {
         }
       }
     });
+
+    offset += pagina.length;
+
+    // Evita un ciclo infinito si la base devuelve una página vacía antes de
+    // alcanzar el conteo informado.
+    if (pagina.length === 0) break;
+  } while (offset < totalRegistros);
 
   // Convertir a array y redondear valores
   return Object.values(historial).map(m => ({
